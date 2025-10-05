@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.6, 3.9, 3.10, 3.12, 3.13]
+        python-version: [3.7, 3.9, 3.10, 3.12, 3.13]
 
     steps:
     - name: Checkout code
@@ -24,5 +24,4 @@ jobs:
     - name: Run benchmark
       run: |
         echo "Python version: $(python3 --version)"
-        sh compare.sh
-
+        sh threading-vs-sync/compare.sh
