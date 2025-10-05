@@ -12,6 +12,6 @@ end = time.time()
 
 delta = end - start
 
-print(f"Took {delta:.3f} seconds")  # Took 0.243 seconds
+# print(f"Took {delta:.3f} seconds")  # Took 0.243 seconds
 
 

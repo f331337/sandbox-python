@@ -23,5 +23,6 @@ jobs:
 
     - name: Run benchmark
       run: |
+        cd threading-vs-sync/
         echo "Python version: $(python3 --version)"
-        sh threading-vs-sync/compare.sh
+        sh compare.sh

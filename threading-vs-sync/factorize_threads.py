@@ -26,4 +26,4 @@ for thread in threads:
 end = time.time()
 delta = end - start
 
-print(f"Took {delta:.3f} seconds")  # Took
+# print(f"Took {delta:.3f} seconds")  # Took
