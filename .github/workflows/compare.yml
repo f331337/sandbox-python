@@ -3,6 +3,8 @@ name: Compare Python scripts
 on:
   push:
     branches: [main]
+    paths:
+      - "threading-vs-sync/**"
   pull_request:
 
 jobs:
