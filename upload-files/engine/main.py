@@ -1,23 +1,29 @@
+import os
 from typing import Annotated, Union
 
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, File
 
 app = FastAPI()
 
 
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
+UPLOAD_DIRECTORY = "uploads"  # folder where you want to store files
 
-
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: Union[str, None] = None):
-    return {"item_id": item_id, "q": q}
+os.makedirs(UPLOAD_DIRECTORY, exist_ok=True)
 
 
 @app.post("/uploadfile/")
 async def create_upload_file(file: UploadFile):
-    return {"filename": file.filename}
+    file_location = os.path.join(UPLOAD_DIRECTORY, file.filename)
+    try:
+        contents = await file.read()
+        with open(file_location, "wb") as f:
+            f.write(contents)
+
+        return {"filename": file.filename, "saved_to": file_location}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Could not save file: {e}")
+    finally:
+        await file.close()
 
 
 @app.post("/files/")
