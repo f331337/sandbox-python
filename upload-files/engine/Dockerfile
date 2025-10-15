@@ -33,6 +33,8 @@ COPY  ./pyproject.toml ./uv.lock  /app/
 
 COPY ./app /app/app
 
+COPY ./jobs /app/jobs
+
 # Sync the project
 # Ref: https://docs.astral.sh/uv/guides/integration/docker/#intermediate-layers
 RUN --mount=type=cache,target=/root/.cache/uv \
