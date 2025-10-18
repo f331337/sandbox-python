@@ -1,6 +1,6 @@
 import { useState } from "react";
 import "./App.css";
-import { uploadFile } from "./services/uploader";
+import { uploadFile, pollTaskStatus } from "./services/uploader";
 
 function App() {
 	const [file, setFile] = useState(null);
@@ -39,8 +39,9 @@ function App() {
 			setError("");
 			setStatus("Uploading...");
 
+			const apiUrl = import.meta.env.VITE_API_URL;
 			const result = await uploadFile(file, {
-				apiUrl: import.meta.env.VITE_API_URL,
+				apiUrl,
 				fileType: ["text/csv", ".csv"],
 				contentType: "multipart/form-data",
 				maxSizeMb: 100,
@@ -50,8 +51,46 @@ function App() {
 				throw new Error(result.message);
 			}
 
+			// Show immediate response
 			setStatus(result.message || `Uploaded ${file.name} successfully.`);
 			setFile(null);
+
+			// If backend returns a task_id, start polling
+			const taskId = result?.data?.task_id;
+			if (taskId) {
+				setStatus(`Upload accepted. Tracking task ${taskId}...`);
+				const controller = new AbortController();
+				try {
+					const final = await pollTaskStatus(apiUrl, taskId, {
+						intervalMs: 1000,
+						signal: controller.signal,
+						onUpdate: (payload) => {
+							const st = payload?.status || "pending";
+							if (st === "PENDING" || st === "pending") {
+								setStatus(`Processing... (task ${taskId})`);
+							}
+						},
+					});
+
+					if (final.status === "success") {
+						setStatus(
+							typeof final.payload === "object"
+								? `Success: ${JSON.stringify(final.payload.result ?? final.payload)}`
+							: `Success: ${String(final.payload)}`
+						);
+					} else if (final.status === "failure") {
+						const errMsg =
+							typeof final.payload === "object"
+								? final.payload.error || JSON.stringify(final.payload)
+								: String(final.payload);
+						setError(`Task failed: ${errMsg}`);
+					} else {
+						setError("Task ended with an error while polling.");
+					}
+				} finally {
+					// no-op, controller scope ends
+				}
+			}
 		} catch (err) {
 			setError(err.message || "Upload failed");
 		} finally {
@@ -61,7 +100,7 @@ function App() {
 
 	return (
 		<div className="upload-container">
-			<h1>Upload CSV</h1>
+			<h1>Upload File </h1>
 			<input type="file" accept=".csv,text/csv" onChange={handleFileChange} />
 			{error && <p style={{ color: "red" }}>{error}</p>}
 			{status && <p style={{ color: "green" }}>{status}</p>}

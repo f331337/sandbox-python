@@ -25,6 +25,7 @@ services:
       - .env
     volumes:
       - engine-uploads:/app/uploads 
+      - ./engine/validated:/app/validated 
     depends_on:
       - redis
       - celery-beat
